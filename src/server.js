@@ -30,6 +30,8 @@ const router = AutoRouter();
  * A simple :wave: hello page to verify the worker is working.
  */
 router.get('/', (request, env) => {
+  console.error('GET request');
+  console.error('request: ', request);
   return new Response(`👋 ${env.DISCORD_APPLICATION_ID}`);
 });
 
@@ -39,6 +41,8 @@ router.get('/', (request, env) => {
  * https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object
  */
 router.post('/', async (request, env) => {
+  console.error('POST request');
+  console.error('request: ', request);
   const { isValid, interaction } = await server.verifyDiscordRequest(
     request,
     env,
@@ -46,6 +50,7 @@ router.post('/', async (request, env) => {
   if (!isValid || !interaction) {
     return new Response('Bad request signature.', { status: 401 });
   }
+  console.error('interaction: ', interaction);
 
   if (interaction.type === InteractionType.PING) {
     // The `PING` message is used during the initial webhook handshake, and is
