@@ -1,3 +1,6 @@
 name = "derek-bot-discord"
 main = "./src/server.js"
 compatibility_date="2023-05-18"
+
+[observability]
+enabled = true
