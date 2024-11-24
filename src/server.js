@@ -8,9 +8,7 @@ import {
   InteractionType,
   verifyKey,
 } from 'discord-interactions';
-import { AWW_COMMAND, INVITE_COMMAND } from './commands.js';
-import { getCuteUrl } from './reddit.js';
-import { InteractionResponseFlags } from 'discord-interactions';
+import { COMMAND } from './commands.js';
 
 class JsonResponse extends Response {
   constructor(body, init) {
@@ -26,13 +24,18 @@ class JsonResponse extends Response {
 
 const router = AutoRouter();
 
+const CONTENT = ['TODO: Naomi - Finish implementing this bot'];
+
 /**
  * A simple :wave: hello page to verify the worker is working.
  */
 router.get('/', (request, env) => {
-  console.error('GET request');
-  console.error('request: ', request);
-  return new Response(`👋 ${env.DISCORD_APPLICATION_ID}`);
+  return new JsonResponse({
+    type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+    data: {
+      content: `👋 ${env.DISCORD_APPLICATION_ID}`,
+    },
+  });
 });
 
 /**
@@ -41,8 +44,6 @@ router.get('/', (request, env) => {
  * https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object
  */
 router.post('/', async (request, env) => {
-  console.error('POST request');
-  console.error('request: ', request);
   const { isValid, interaction } = await server.verifyDiscordRequest(
     request,
     env,
@@ -50,7 +51,6 @@ router.post('/', async (request, env) => {
   if (!isValid || !interaction) {
     return new Response('Bad request signature.', { status: 401 });
   }
-  console.error('interaction: ', interaction);
 
   if (interaction.type === InteractionType.PING) {
     // The `PING` message is used during the initial webhook handshake, and is
@@ -60,36 +60,20 @@ router.post('/', async (request, env) => {
     });
   }
 
-  if (interaction.type === InteractionType.APPLICATION_COMMAND) {
-    // Most user commands will come as `APPLICATION_COMMAND`.
-    switch (interaction.data.name.toLowerCase()) {
-      case AWW_COMMAND.name.toLowerCase(): {
-        const cuteUrl = await getCuteUrl();
-        return new JsonResponse({
-          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-          data: {
-            content: cuteUrl,
-          },
-        });
-      }
-      case INVITE_COMMAND.name.toLowerCase(): {
-        const applicationId = env.DISCORD_APPLICATION_ID;
-        const INVITE_URL = `https://discord.com/oauth2/authorize?client_id=${applicationId}&scope=applications.commands`;
-        return new JsonResponse({
-          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-          data: {
-            content: INVITE_URL,
-            flags: InteractionResponseFlags.EPHEMERAL,
-          },
-        });
-      }
-      default:
-        return new JsonResponse({ error: 'Unknown Type' }, { status: 400 });
-    }
+  if (interaction.type !== InteractionType.APPLICATION_COMMAND) {
+    return new JsonResponse({ error: 'Unknown Type' }, { status: 400 });
   }
 
-  console.error('Unknown Type');
-  return new JsonResponse({ error: 'Unknown Type' }, { status: 400 });
+  if (interaction.data.name.toLowerCase() !== COMMAND.name.toLowerCase()) {
+    return new JsonResponse({ error: 'Unknown command' }, { status: 400 });
+  }
+
+  const content = CONTENT[Math.floor(Math.random() * CONTENT.length)];
+
+  return new JsonResponse({
+    type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+    data: { content },
+  });
 });
 router.all('*', () => new Response('Not Found.', { status: 404 }));
 
