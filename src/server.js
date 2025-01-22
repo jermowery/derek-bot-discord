@@ -24,7 +24,7 @@ class JsonResponse extends Response {
 
 const router = AutoRouter();
 
-const CONTENT = ['I am alive'];
+const CONTENT = ['I will be alive'];
 
 /**
  * A simple :wave: hello page to verify the worker is working.
